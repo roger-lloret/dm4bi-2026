@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from pathlib import Path
@@ -42,3 +43,20 @@ def load_sql_file(filepath: Path) -> str:
     """Reads a SQL file and returns its content as a string."""
     with open(filepath, "r", encoding="utf-8") as file:
         return file.read()
+
+# --- Data Processing Functions ---
+
+def classify_invoices(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    """
+    Classifies numeric values into categories using vectorized NumPy operations 
+    for performance, replacing slower .apply() methods.
+    """
+    conditions = [
+        (df[column_name] < 50),
+        (df[column_name] >= 50) & (df[column_name] <= 100),
+        (df[column_name] > 100)
+    ]
+    choices = ["Less than 50", "Between 50 and 100", "Greater than 100"]
+    
+    df['category'] = np.select(conditions, choices, default="Invalid Input")
+    return df
